@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Rust: Local Launch",
+            "type": "gdb",
+            "gdbpath": "rust-gdb",
+            "request": "launch",
+            "target": "./target/debug/pam_oidc",
+            "cwd": "${workspaceRoot}/pam_oidc",
+            "valuesFormatting": "parseText",
+            "env": {
+                "PAM_TYPE":"auth",
+                "PAM_USER":"raphael"
+            },
+            "arguments": "/workspace/sample.yaml"
+        }
+    ]
+}

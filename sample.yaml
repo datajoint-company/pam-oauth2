@@ -1,0 +1,15 @@
+---
+client.id: diff
+client.secret: one
+url.auth: http://oauth2_demo:3000/auth
+url.token: http://oauth2_demo:3000/token
+url.userinfo: http://oauth2_demo:3000/me
+username.key: sub
+token.min_size: 128
+# log.path: /tmp/new/raphael.log
+# client.id: 5tWuoIz5qKcgCJrIfKenMfwzhlkLaYMJ
+# client.secret: 8L0twTVkcIAoa3IoBLfwjGmEP46XsE6b
+# url.auth: https://datajoint.io/auth/auth
+# url.token: https://datajoint.io/auth/token
+# url.userinfo: https://datajoint.io/auth/me
+# token.min_size: 128
