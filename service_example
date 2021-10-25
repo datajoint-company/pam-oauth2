@@ -1,0 +1,2 @@
+auth sufficient libpam_oidc.so /etc/datajoint/libpam_oidc.yaml
+account optional libpam_oidc.so

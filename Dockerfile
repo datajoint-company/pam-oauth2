@@ -36,8 +36,7 @@ RUN \
 USER rust_dev
 ENV USER rust_dev
 ENV HOME /home/rust_dev
-# hi
-# COPY ./pam-rs/pam-http/target/release/libpam_http.so /workspace/pam-rs/pam-http/target/release/libpam_http.so
-COPY ./pam-oidc/target/release/libpam_oidc.so /workspace/pam-oidc/target/release/libpam_oidc.so
-# COPY ./test-module/target/release/libtest_module.so /workspace/test-module/target/release/libtest_module.so
+
+
+# COPY ./pam-oidc/target/release/libpam_oidc.so /workspace/pam-oidc/target/release/libpam_oidc.so
 WORKDIR /workspace
