@@ -1,2 +1,0 @@
-auth sufficient libpam_oidc.so /workspace/sample.yaml
-account optional libpam_oidc.so

@@ -1,0 +1,10 @@
+client.id: client_id
+client.secret: client_secret
+url.auth: https://accounts.datajoint.io/auth/auth
+url.token: https://accounts.datajoint.io/auth/token
+url.userinfo: https://accounts.datajoint.io/auth/me
+username.key: sub
+scopes: "openid jupyter-env:sciops-npx-demo"
+token.min_size: 128  # maximum password length
+log.path: /tmp/libpam_oidc.log
+log.level: Error  # Error || Warn || Info || Debug

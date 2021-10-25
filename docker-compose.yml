@@ -1,9 +1,14 @@
+# docker buildx bake --set "*.platform=linux/amd64" --load
+# docker-compose up --build
 version: "2.4"
 services:
   app:
     build: .
-    image: pam_oidc:v0.0.2
-    # environment:
+    image: pam_oidc:v0.0.3
+    environment:
+      - DJ_AUTH_USER
+      - DJ_AUTH_PASSWORD
+      - DJ_AUTH_TOKEN
     #   - RUSTFLAGS=-C link-arg=-undefined
     #   - RUSTFLAGS=-C target-feature=-crt-static
     #   - DISPLAY
@@ -17,8 +22,17 @@ services:
     # ports:
     #   - 2345:2345
     volumes:
-      - ./sample.yaml:/workspace/sample.yaml
-networks:
-  default:
-    external:
-      name: node-oidc-provider_default
+      - ./pam-oidc/target/debug/libpam_oidc.so:/lib/x86_64-linux-gnu/security/libpam_oidc.so  # add pam_oidc to available authentication schemes
+      - ./service_example:/etc/pam.d/oidc  # add a 'oidc' config that utilizes pam_oidc
+      # - ./pam-oidc/target/target/libpam_oidc.so /lib/x86_64-linux-gnu/security/libpam_oidc.so
+      - ./libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml  # add pam_oidc-specific config
+#     networks:
+#       - network1
+#       - network2
+# networks:
+#   network1:
+#     external:
+#       name: accountsdatajointio_main
+#   network2:
+#     external:
+#       name: node-oidc-provider_default
