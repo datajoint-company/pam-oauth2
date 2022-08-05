@@ -14,7 +14,10 @@
    See [service_example](./service_example) for more info.
 
 1. In the path provided to the service config, create a config file for `pam_oidc`. See [libpam_oidc_example.yaml](./libpam_oidc_example.yaml) for more info.
-1. Configure your PAM-compatible application/service to point to the `oidc` service we just created.
+1. Configure your PAM-compatible application/service to point to the `oidc` service we just created. For example using the above in MySQL, you can create a new user with federated authentication with the following command:
+   ```sql
+   CREATE USER 'raphael'@'%' IDENTIFIED VIA pam USING 'oidc';
+   ```
 
 ## Developer Instructions
 
