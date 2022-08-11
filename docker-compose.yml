@@ -1,5 +1,5 @@
-# docker buildx bake --set "*.platform=linux/amd64" --load
 # docker-compose up --build
+# docker buildx bake --set "*.platform=linux/amd64" --load
 version: "2.4"
 services:
   app:
@@ -22,10 +22,11 @@ services:
     # ports:
     #   - 2345:2345
     volumes:
-      - ./pam-oidc/target/debug/libpam_oidc.so:/lib/x86_64-linux-gnu/security/libpam_oidc.so  # add pam_oidc to available authentication schemes
-      - ./service_example:/etc/pam.d/oidc  # add a 'oidc' config that utilizes pam_oidc
-      # - ./pam-oidc/target/target/libpam_oidc.so /lib/x86_64-linux-gnu/security/libpam_oidc.so
-      - ./libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml  # add pam_oidc-specific config
+      - ./config/service_example:/etc/pam.d/oidc # add a 'oidc' config that utilizes pam_oidc
+      - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml # add pam_oidc-specific config
+      - ./tests/test.py:/workspace/test.py # python test
+      - ./pam-oidc:/workspace/pam-oidc # mount source for dev
+
 #     networks:
 #       - network1
 #       - network2
