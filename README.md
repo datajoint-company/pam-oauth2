@@ -2,7 +2,7 @@
 
 ## Deploy Instructions
 
-1. Acquire (see the [releases](https://github.com/vathes/pam-oauth2/releases) page) or build (see below) the appropriate `libpam_oidc.so` dynamic clib binary for your platform that provides the PAM interface to authenticate via an OIDC provider.
+1. Acquire (see the [releases](https://github.com/datajoint-company/pam-oauth2/releases) page) or build (see below) the appropriate `libpam_oidc.so` dynamic clib binary for your platform that provides the PAM interface to authenticate via an OIDC provider.
 1. Copy `libpam_oidc.so` into the appropriate directory that your system expects new modules to be loaded e.g. on Debian, it is located in `/lib/x86_64-linux-gnu/security/`.
 1. Create a service config file within the directory that your system expects for PAM e.g. on Debian, it is located in `/etc/pam.d/`. We can for instance create a service/file called `oidc` with the following contents (note the argument in the 1st line should be the path where `pam_oidc`'s config will be located):
 
