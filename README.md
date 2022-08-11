@@ -2,7 +2,7 @@
 
 ## Deploy Instructions
 
-1. Acquire (see the [releases](https://github.com/vathes/pam-oauth2/releases) page) or build (see below) the appropriate `libpam_oidc.so` dynamic clib binary for your platform that provides the PAM interface to authenticate via an OIDC provider.
+1. Acquire (see the [releases](https://github.com/datajoint-company/pam-oauth2/releases) page) or build (see below) the appropriate `libpam_oidc.so` dynamic clib binary for your platform that provides the PAM interface to authenticate via an OIDC provider.
 1. Copy `libpam_oidc.so` into the appropriate directory that your system expects new modules to be loaded e.g. on Debian, it is located in `/lib/x86_64-linux-gnu/security/`.
 1. Create a service config file within the directory that your system expects for PAM e.g. on Debian, it is located in `/etc/pam.d/`. We can for instance create a service/file called `oidc` with the following contents (note the argument in the 1st line should be the path where `pam_oidc`'s config will be located):
 
@@ -11,13 +11,10 @@
    account optional libpam_oidc.so
    ```
 
-   See [service_example](./service_example) for more info.
+   See [service_example](./config/service_example) for more info.
 
-1. In the path provided to the service config, create a config file for `pam_oidc`. See [libpam_oidc_example.yaml](./libpam_oidc_example.yaml) for more info.
-1. Configure your PAM-compatible application/service to point to the `oidc` service we just created. For example using the above in MySQL, you can create a new user with federated authentication with the following command:
-   ```sql
-   CREATE USER 'raphael'@'%' IDENTIFIED VIA pam USING 'oidc';
-   ```
+1. In the path provided to the service config, create a config file for `pam_oidc`. See [libpam_oidc_example.yaml](./config/libpam_oidc_example.yaml) for more info.
+1. Configure your PAM-compatible application/service to point to the `oidc` service we just created. For a few examples, see [test.sh](./tests/test.sh).
 
 ## Developer Instructions
 
@@ -28,17 +25,9 @@ cd ./pam-oidc && cargo build; cd ..  # DEBUG
 cd ./pam-oidc && cargo build --release; cd ..  # PROD
 ```
 
-### Manually copy over new build for PAM
-
-```bash
-docker exec -itu root pam-oauth2_app_1 cp pam-oidc/target/debug/libpam_oidc.so /lib/x86_64-linux-gnu/security/
-```
-
 ### Validate PAM with test cases
 
-```bash
-python3 test.py
-```
+See tests in `tests` subdirectory. The header comment gives hints how to run them.
 
 ## --- Old Notes ---
 

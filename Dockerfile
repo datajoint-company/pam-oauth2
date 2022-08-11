@@ -22,15 +22,20 @@ RUN \
 
 RUN \
     # apk add gdb git && \
-    apt-get update && apt-get install gdb git -y && \
-    mkdir -p /workspace/pam-rs/pam-http/target/release
-    # && \
-    # gdbserver :2345 ./target/debug/app
+    apt-get update && apt-get install gdb git -y
+# && \
+# mkdir -p /workspace/pam-rs/pam-http/target/release
+# && \
+# gdbserver :2345 ./target/debug/app
 
 RUN \
     ln -s /lib/x86_64-linux-gnu/libpam.so.0 /lib/x86_64-linux-gnu/libpam.so && \
+    ln -s /workspace/pam-oidc/target/debug/libpam_oidc.so /lib/x86_64-linux-gnu/security/libpam_oidc.so && \
     apt-get install python3-pip  -y && \
-    pip3 install python-pam
+    pip3 install python-pam && \
+    mkdir -p /workspace/pam-oidc && \
+    chown 1000:0 /workspace && \
+    chown 1000:0 /workspace/pam-oidc
 
 
 USER rust_dev
@@ -38,5 +43,8 @@ ENV USER rust_dev
 ENV HOME /home/rust_dev
 
 
-# COPY ./pam-oidc/target/release/libpam_oidc.so /workspace/pam-oidc/target/release/libpam_oidc.so
 WORKDIR /workspace
+
+COPY --chown=1000:0 pam-oidc/src /workspace/pam-oidc/src
+COPY --chown=1000:0 pam-oidc/Cargo.toml /workspace/pam-oidc/
+RUN cd pam-oidc && cargo build && cargo build --release

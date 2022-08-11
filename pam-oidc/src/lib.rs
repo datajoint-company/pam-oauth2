@@ -14,7 +14,7 @@ use pamsm::{
     PamServiceModule,
     PamLibExt,
     Pam,
-    PamFlag,
+    PamFlags,
     PamError,
 };
 struct PamCustom;
@@ -67,7 +67,7 @@ use log4rs::config::{
 use rand::Rng;
 // interface
 impl PamServiceModule for PamCustom {
-    fn authenticate(_pamh: Pam, _flags: PamFlag, _args: Vec<String>) -> PamError {
+    fn authenticate(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         // Load libpam_oidc.so's YAML config file
         let crate_version = format!("{}.{}.{}", pkg_version_major!(), pkg_version_minor!(),
                                     pkg_version_patch!());
@@ -79,7 +79,7 @@ impl PamServiceModule for PamCustom {
         log_panics::init();
         let stdout = ConsoleAppender::builder()
             .encoder(Box::new(PatternEncoder::new(format!(
-                "[{{d(%Y-%m-%d %H:%M:%S%.3f)}}][{}][{{l}}][{}]: {{m}}{{n}}",
+                "[{{d(%Y-%m-%d %H:%M:%S%.3f)}}][pam-oidc][{}][{{l}}][{}]: {{m}}{{n}}",
                 crate_version,
                 log_id,
             )
@@ -107,7 +107,7 @@ impl PamServiceModule for PamCustom {
             .unwrap();
         match log4rs::init_config(log_config) {
             Ok(_) => debug!("Logging successfully initialized."),
-            Err(_) => return PamError::AUTH_ERR,
+            Err(error) => debug!("Encountered error initializing log file: {}", error),
         };
         // Initialize user and password supplied
         info!("Auth detected. Proceeding...");
@@ -178,7 +178,7 @@ impl PamServiceModule for PamCustom {
         let assigned_scopes = jwt_payload.get("scope").unwrap().as_str().unwrap();
         debug!("assigned_scopes: {}", assigned_scopes);
         // Verify token
-        info!("Verirying token.");
+        info!("Verifying token.");
         let userinfo_url = format!("{}?access_token={}",
                                    config[0]["url.userinfo"].as_str().unwrap(),
                                    access_token);
@@ -210,23 +210,23 @@ impl PamServiceModule for PamCustom {
         }
     }
 
-    fn chauthtok(_pamh: Pam, _flags: PamFlag, _args: Vec<String>) -> PamError {
+    fn chauthtok(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
 
-    fn open_session(_pamh: Pam, _flags: PamFlag, _args: Vec<String>) -> PamError {
+    fn open_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
 
-    fn close_session(_pamh: Pam, _flags: PamFlag, _args: Vec<String>) -> PamError {
+    fn close_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
     
-    fn setcred(_pamh: Pam, _flags: PamFlag, _args: Vec<String>) -> PamError {
-        PamError::CRED_UNAVAIL
+    fn setcred(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        PamError::SUCCESS
     }
     
-    fn acct_mgmt(_pamh: Pam, _flags: PamFlag, _args: Vec<String>) -> PamError {
+    fn acct_mgmt(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
 }
