@@ -1,4 +1,4 @@
-# docker-compose up --build
+# docker compose up --build
 # docker buildx bake --set "*.platform=linux/amd64" --load
 version: "2.4"
 services:
