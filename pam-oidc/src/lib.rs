@@ -179,11 +179,13 @@ impl PamServiceModule for PamCustom {
         debug!("assigned_scopes: {}", assigned_scopes);
         // Verify token
         info!("Verifying token.");
-        let userinfo_url = format!("{}?access_token={}",
-                                   config[0]["url.userinfo"].as_str().unwrap(),
-                                   access_token);
-        debug!("userinfo_url: {}", userinfo_url);
-        let body = reqwest::blocking::get(&userinfo_url).unwrap().text().unwrap();
+        let body = reqwest::blocking::Client::new()
+            .get(config[0]["url.userinfo"].as_str().unwrap())
+            .header("Authorization", format!("Bearer {}", access_token))
+            .send()
+            .unwrap()
+            .text()
+            .unwrap();
         debug!("body: {}", body);
         let json: Value = serde_json::from_str(&body).unwrap();
         debug!("token's user: {:?}", json.get("sub"));
