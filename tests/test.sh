@@ -35,7 +35,7 @@ percona() {
         sleep 5
     done
     docker cp ./config/service_example database:/etc/pam.d/oidc
-    docker cp ./pam-oidc/target/release/libpam_oidc_linux_amd64.so database:/usr/lib64/security/libpam_oidc.so
+    docker cp ./pam-oidc/target/debug/libpam_oidc.so database:/usr/lib64/security/libpam_oidc.so
     docker exec -itu root database mkdir /etc/datajoint
     docker cp ./config/libpam_oidc.yaml database:/etc/datajoint/
     docker exec -it database mysql -uroot -p${ROOT_PASSWORD} -e "CREATE USER '${DJ_AUTH_USER}'@'%' IDENTIFIED WITH auth_pam AS 'oidc';"
@@ -44,4 +44,3 @@ percona() {
     docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -pdeny -e "SELECT 'delegated to oidc' as login;"
 }
 
-"$@"

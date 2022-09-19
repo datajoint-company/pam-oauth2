@@ -212,13 +212,6 @@ impl PamServiceModule for PamCustom {
         }
     }
 
-    fn subset(parent: &str, child: &str) -> bool {
-        let assigned_scopes = parent.split_whitespace().collect::<Vec<&str>>();
-        let mut required_scopes = child.split_whitespace();
-        let scopes_satisfied = required_scopes.all(|item| assigned_scopes.contains(&item));
-        return scopes_satisfied;
-    }
-
     fn chauthtok(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
