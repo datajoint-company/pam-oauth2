@@ -4,10 +4,13 @@ version: "2.4"
 services:
   app:
     build: .
-    image: pam_oidc:v0.0.3
-    # environment:
-      # - RUSTFLAGS=-C link-arg=-undefined
-      # - RUSTFLAGS=-C target-feature=-crt-static
+    image: pam_oidc:v0.1.4
+    environment:
+      - DJ_AUTH_USER
+      - DJ_AUTH_PASSWORD
+      - DJ_AUTH_TOKEN
+    #   - RUSTFLAGS=-C link-arg=-undefined
+    #   - RUSTFLAGS=-C target-feature=-crt-static
     command: tail -f /dev/null
     volumes:
       - ./config/service_example:/etc/pam.d/oidc # add a 'oidc' config that utilizes pam_oidc

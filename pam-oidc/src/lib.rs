@@ -190,11 +190,11 @@ impl PamServiceModule for PamCustom {
         let json: Value = serde_json::from_str(&body).unwrap();
         debug!("token's user: {:?}", json.get("sub"));
         let username = json.get(config[0]["username.key"].as_str().unwrap().to_string());
-        let scopes = config[0]["scopes"].as_str().unwrap().to_string();
-        let scopes_satisfied = subset(scopes, assigned_scopes);
+        let required_scopes = config[0]["scopes"].as_str().unwrap().to_string();
+        let scopes_satisfied = subset(assigned_scopes, &required_scopes);
+        // let scopes_satisfied = &required_scopes == assigned_scopes;
         if username != None &&
-                pam_user == json[config[0]["username.key"].as_str().unwrap().to_string()]
-                    .as_str().unwrap() &&
+                pam_user == username.unwrap() &&
                 scopes_satisfied {
             //  If username defined in token, it matches pam_user, and the scopes satisfy
             info!("Auth success!");
@@ -204,10 +204,8 @@ impl PamServiceModule for PamCustom {
             error!("Token invalid error.");
             PamError::AUTH_ERR
         } else {
-            debug!("user defined? {}", json.get(
-                config[0]["username.key"].as_str().unwrap().to_string()) != None);
-            debug!("user matches? {}", pam_user == json[
-                config[0]["username.key"].as_str().unwrap().to_string()].as_str().unwrap());
+            debug!("user defined? {}", username != None);
+            debug!("user matches? {}", pam_user == username.unwrap());
             debug!("scopes satisfied? {}", scopes_satisfied);
             error!("Auth failed!");
             PamError::AUTH_ERR
@@ -240,6 +238,13 @@ impl PamServiceModule for PamCustom {
     fn acct_mgmt(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
+}
+
+pub fn subset(parent: &str, child: &str) -> bool {
+    let assigned_scopes = parent.split_whitespace().collect::<Vec<&str>>();
+    let mut required_scopes = child.split_whitespace();
+    let scopes_satisfied = required_scopes.all(|item| assigned_scopes.contains(&item));
+    return scopes_satisfied;
 }
 
 pub fn load_file(file: &str) -> std::vec::Vec<Yaml> {
