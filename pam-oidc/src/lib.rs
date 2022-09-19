@@ -189,14 +189,17 @@ impl PamServiceModule for PamCustom {
         debug!("body: {}", body);
         let json: Value = serde_json::from_str(&body).unwrap();
         debug!("token's user: {:?}", json.get("sub"));
-        if json.get(config[0]["username.key"].as_str().unwrap().to_string()) != None &&
+        let username = json.get(config[0]["username.key"].as_str().unwrap().to_string());
+        let scopes = config[0]["scopes"].as_str().unwrap().to_string();
+        let scopes_satisfied = subset(scopes, assigned_scopes);
+        if username != None &&
                 pam_user == json[config[0]["username.key"].as_str().unwrap().to_string()]
                     .as_str().unwrap() &&
-                config[0]["scopes"].as_str().unwrap().to_string() == assigned_scopes {
+                scopes_satisfied {
             //  If username defined in token, it matches pam_user, and the scopes satisfy
             info!("Auth success!");
             PamError::SUCCESS
-        } else if json.get(config[0]["username.key"].as_str().unwrap().to_string()) == None {
+        } else if username == None {
             // If username not defined in token
             error!("Token invalid error.");
             PamError::AUTH_ERR
@@ -205,11 +208,17 @@ impl PamServiceModule for PamCustom {
                 config[0]["username.key"].as_str().unwrap().to_string()) != None);
             debug!("user matches? {}", pam_user == json[
                 config[0]["username.key"].as_str().unwrap().to_string()].as_str().unwrap());
-            debug!("scopes satisfied? {}", config[0]["scopes"].as_str().unwrap()
-                .to_string() == assigned_scopes);
+            debug!("scopes satisfied? {}", scopes_satisfied);
             error!("Auth failed!");
             PamError::AUTH_ERR
         }
+    }
+
+    fn subset(parent: &str, child: &str) -> bool {
+        let assigned_scopes = parent.split_whitespace().collect::<Vec<&str>>();
+        let mut required_scopes = child.split_whitespace();
+        let scopes_satisfied = required_scopes.all(|item| assigned_scopes.contains(&item));
+        return scopes_satisfied;
     }
 
     fn chauthtok(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
