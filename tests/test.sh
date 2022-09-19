@@ -44,4 +44,3 @@ percona() {
     docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -pdeny -e "SELECT 'delegated to oidc' as login;"
 }
 
-"$@"

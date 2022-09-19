@@ -27,6 +27,12 @@ cd ./pam-oidc && cargo build --release; cd ..  # PROD
 
 ### Validate PAM with test cases
 
+Create `.env` file in the root directory with the following:
+```
+DJ_AUTH_USER=
+DJ_AUTH_PASSWORD=
+DJ_AUTH_TOKEN=
+```
 See tests in `tests` subdirectory. The header comment gives hints how to run them.
 
 ## --- Old Notes ---

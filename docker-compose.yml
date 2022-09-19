@@ -4,36 +4,16 @@ version: "2.4"
 services:
   app:
     build: .
-    image: pam_oidc:v0.0.3
+    image: pam_oidc:v0.1.4
     environment:
       - DJ_AUTH_USER
       - DJ_AUTH_PASSWORD
       - DJ_AUTH_TOKEN
     #   - RUSTFLAGS=-C link-arg=-undefined
     #   - RUSTFLAGS=-C target-feature=-crt-static
-    #   - DISPLAY
-    # command: ./target/release/pam_oidc
     command: tail -f /dev/null
-    # user: "1000:0"
-    # cap_add:
-    #   - SYS_PTRACE
-    # security_opt:
-    # - seccomp:unconfined
-    # ports:
-    #   - 2345:2345
     volumes:
       - ./config/service_example:/etc/pam.d/oidc # add a 'oidc' config that utilizes pam_oidc
       - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml # add pam_oidc-specific config
       - ./tests/test.py:/workspace/test.py # python test
       - ./pam-oidc:/workspace/pam-oidc # mount source for dev
-
-#     networks:
-#       - network1
-#       - network2
-# networks:
-#   network1:
-#     external:
-#       name: accountsdatajointio_main
-#   network2:
-#     external:
-#       name: node-oidc-provider_default
