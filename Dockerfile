@@ -47,4 +47,3 @@ WORKDIR /workspace
 
 COPY --chown=1000:0 pam-oidc/src /workspace/pam-oidc/src
 COPY --chown=1000:0 pam-oidc/Cargo.toml /workspace/pam-oidc/
-RUN cd pam-oidc && cargo build && cargo build --release
