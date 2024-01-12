@@ -25,6 +25,8 @@ services:
       dockerfile: docker/percona.dockerfile
     environment:
       - MYSQL_ROOT_PASSWORD=password
+    env_file:
+      - .env
     command: |
       bash -c """
       # echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf
@@ -37,6 +39,8 @@ services:
       interval: 15s
     ports:
       - 3306:3306
+    volumes:
+      - ./tests/test.py:/opt/test.py
   builder:
     build:
       context: .

@@ -11,6 +11,9 @@ RUN \
 	chmod g+r /etc/shadow && \
 	useradd ap_user && \
 	echo "ap_user:password" | chpasswd
+RUN \
+	yum -y install python3 python3-pip && \
+	pip3 install python-pam
 USER mysql
 
 # https://docs.percona.com/percona-server/8.0/pam-plugin.html#installation
