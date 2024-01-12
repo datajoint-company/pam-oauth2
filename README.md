@@ -35,6 +35,45 @@ DJ_AUTH_TOKEN=
 ```
 See tests in `tests` subdirectory. The header comment gives hints how to run them.
 
+## Testing `pam_unix` Plugin in Percona
+
+Following [Percona blog post](https://www.percona.com/blog/getting-percona-pam-to-work-with-percona-server-its-client-apps/):
+
+```console
+❯ alias dkc='docker compose'
+❯ dkc up --build -d percona
+❯ dkc exec -it percona mysql -hlocalhost -uroot -ppassword -e "SHOW PLUGINS;" | grep auth_pam
+auth_pam        ACTIVE  AUTHENTICATION  auth_pam.so     GPL
+❯ dkc exec -it percona mysql -hlocalhost -uroot -ppassword
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 19
+Server version: 8.0.34-26 Percona Server (GPL), Release 26, Revision 0fe62c85
+
+Copyright (c) 2009-2023 Percona LLC and/or its affiliates
+Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> CREATE USER ap_user IDENTIFIED WITH auth_pam;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> DELETE FROM mysql.user WHERE USER='';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+Bye
+❯ dkc exec -it percona mysql -hlocalhost -uap_user -ppassword
+# Success
+```
+
 ## --- Old Notes ---
 
 ### Start
