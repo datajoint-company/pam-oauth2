@@ -3,7 +3,9 @@
 version: "2.4"
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/pam_oidc.dockerfile
     image: pam_oidc:v0.1.4
     environment:
       - DJ_AUTH_USER
@@ -17,3 +19,21 @@ services:
       - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml # add pam_oidc-specific config
       - ./tests/test.py:/workspace/test.py # python test
       - ./pam-oidc:/workspace/pam-oidc # mount source for dev
+
+
+# docker run --name some-percona -v /my/custom:/etc/my.cnf.d -e MYSQL_ROOT_PASSWORD=my-secret-pw -d percona:tag
+
+# docker run --name database -de MYSQL_ROOT_PASSWORD=${ROOT_PASSWORD} --entrypoint bash percona:8 -c "echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf && /docker-entrypoint.sh mysqld"
+# until docker exec -it database mysql -h 127.0.0.1 -uroot -p${ROOT_PASSWORD} -e "SELECT 1;" 1>/dev/null
+# do
+#     echo waiting...
+#     sleep 5
+# done
+# docker cp ./config/service_example database:/etc/pam.d/oidc
+# docker cp ./pam-oidc/target/debug/libpam_oidc.so database:/usr/lib64/security/libpam_oidc.so
+# docker exec -itu root database mkdir /etc/datajoint
+# docker cp ./config/libpam_oidc.yaml database:/etc/datajoint/
+# docker exec -it database mysql -uroot -p${ROOT_PASSWORD} -e "CREATE USER '${DJ_AUTH_USER}'@'%' IDENTIFIED WITH auth_pam AS 'oidc';"
+# docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -p${DJ_AUTH_PASSWORD} -e "SELECT 'delegated to oidc' as login;"
+# docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -p${DJ_AUTH_PASSWORD} -e "SELECT 'delegated to oidc' as login;"
+# docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -pdeny -e "SELECT 'delegated to oidc' as login;"
