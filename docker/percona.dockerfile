@@ -1,6 +1,7 @@
 FROM datajoint/pam-oauth2-builder:latest as builder
 FROM percona:8
-COPY --from=builder /tmp/pam-oauth2/libpam_oidc.so /lib/x86_64-linux-gnu/security/libpam_oidc.so
+# COPY --from=builder /tmp/pam-oauth2/libpam_oidc.so /lib/x86_64-linux-gnu/security/libpam_oidc.so
+COPY --from=builder /tmp/pam-oauth2/libpam_oidc.so /usr/lib64/security/libpam_oidc.so
 RUN echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf
 
 # https://www.percona.com/blog/getting-percona-pam-to-work-with-percona-server-its-client-apps/
