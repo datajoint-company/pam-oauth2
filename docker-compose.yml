@@ -5,7 +5,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: docker/pam_oidc.dockerfile
+      dockerfile: docker/app.dockerfile
     image: pam_oidc:v0.1.4
     environment:
       - DJ_AUTH_USER
@@ -19,6 +19,39 @@ services:
       - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml # add pam_oidc-specific config
       - ./tests/test.py:/workspace/test.py # python test
       - ./pam-oidc:/workspace/pam-oidc # mount source for dev
+  percona:
+    build:
+      context: .
+      dockerfile: docker/percona.dockerfile
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+    command: |
+      bash -c """
+      # echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf
+      /docker-entrypoint.sh mysqld
+      """
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 30s
+      retries: 5
+      interval: 15s
+    ports:
+      - 3306:3306
+  builder:
+    build:
+      context: .
+      dockerfile: docker/builder.dockerfile
+    image: datajoint/pam-oauth2-builder:latest
+  tester:
+    build:
+      context: .
+      dockerfile: docker/tester.dockerfile
+    image: datajoint/pam-oauth2-tester:latest
+    command: |
+      bash -c """
+      pip install -r requirements.txt
+      python test.py
+      """
 
 
 # docker run --name some-percona -v /my/custom:/etc/my.cnf.d -e MYSQL_ROOT_PASSWORD=my-secret-pw -d percona:tag
