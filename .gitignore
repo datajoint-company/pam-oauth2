@@ -2,3 +2,7 @@ target
 libpam_oidc.yaml
 .env
 Cargo.lock
+
+# Added by cargo
+
+/target
