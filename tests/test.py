@@ -14,6 +14,7 @@ response = p.authenticate(
 )
 print(f"Authenticated (pam_unix)? {response}")
 print(f"Reason (pam_unix): {p.reason}")
+p.close_session()
 
 # Test oidc with user:password
 p = pam.pam()

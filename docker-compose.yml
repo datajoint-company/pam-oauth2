@@ -41,6 +41,10 @@ services:
       - 3306:3306
     volumes:
       - ./tests/test.py:/opt/test.py
+      - ./tests/test_oidc.py:/opt/test_oidc.py
+    depends_on:
+      builder:
+        condition: service_completed_successfully
   builder:
     build:
       context: .
