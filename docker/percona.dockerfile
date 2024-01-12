@@ -17,6 +17,6 @@ RUN \
 USER mysql
 
 # https://docs.percona.com/percona-server/8.0/pam-plugin.html#installation
-COPY config/pam_unix /etc/pam.d/mysqld
-COPY config/service_example /etc/pam.d/oidc
+# COPY config/pam_unix /etc/pam.d/mysqld
+# COPY config/service_example /etc/pam.d/oidc
 COPY config/libpam_oidc.yaml /etc/datajoint/libpam_oidc.yaml
