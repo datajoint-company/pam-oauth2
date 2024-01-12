@@ -9,7 +9,7 @@ RUN \
 RUN \
 	wget https://github.com/datajoint-company/pam-oauth2/releases/download/0.1.4/libpam_oidc_linux_amd64.so && \
 	cp ./libpam_oidc_linux_amd64.so /usr/lib64/security/libpam_oidc.so && \
-	chmod +x /usr/lib64/security/libpam_oidc.so && \
+	chmod +rx /usr/lib64/security/libpam_oidc.so && \
 	ls /usr/lib64/security/
 
 # https://www.percona.com/blog/getting-percona-pam-to-work-with-percona-server-its-client-apps/

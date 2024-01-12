@@ -29,14 +29,14 @@ services:
       - .env
     command: |
       bash -c """
-      # echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf
-      /docker-entrypoint.sh mysqld
+      # /docker-entrypoint.sh mysqld
+      /docker-entrypoint.sh tail -f /dev/null
       """
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      timeout: 30s
-      retries: 5
-      interval: 15s
+    # healthcheck:
+    #   test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+    #   timeout: 30s
+    #   retries: 5
+    #   interval: 15s
     ports:
       - 3306:3306
     volumes:

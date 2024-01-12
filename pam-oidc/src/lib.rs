@@ -111,6 +111,11 @@ impl PamServiceModule for PamCustom {
         };
         // Initialize user and password supplied
         info!("Auth detected. Proceeding...");
+
+        // DEBUG
+        return PamError::SUCCESS;
+
+
         let pam_user = match _pamh.get_user(None) {
             Ok(Some(u)) => u.to_str().unwrap(),
             Ok(None) => return PamError::USER_UNKNOWN,
@@ -223,11 +228,11 @@ impl PamServiceModule for PamCustom {
     fn close_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
-    
+
     fn setcred(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
-    
+
     fn acct_mgmt(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         PamError::SUCCESS
     }
