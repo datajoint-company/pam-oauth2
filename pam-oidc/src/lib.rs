@@ -113,8 +113,8 @@ impl PamServiceModule for PamCustom {
         info!("Auth detected. Proceeding...");
 
         // DEBUG
-        return PamError::SUCCESS;
-
+        // return PamError::AUTH_ERR;
+        // return PamError::SUCCESS;
 
         let pam_user = match _pamh.get_user(None) {
             Ok(Some(u)) => u.to_str().unwrap(),
