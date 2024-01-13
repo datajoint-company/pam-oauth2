@@ -26,7 +26,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=password
     env_file:
-      - .env
+      # - demouser.env
+      - milagros.env
     command: |
       bash -c """
       # /docker-entrypoint.sh mysqld
