@@ -49,7 +49,7 @@ services:
     build:
       context: .
       dockerfile: docker/builder.dockerfile
-    image: datajoint/pam-oauth2-builder:latest
+    image: datajoint/pam-oauth2-builder:v0.1.4
   tester:
     build:
       context: .

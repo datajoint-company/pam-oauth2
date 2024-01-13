@@ -1,4 +1,4 @@
-FROM datajoint/pam-oauth2-builder:latest as builder
+FROM datajoint/pam-oauth2-builder:v0.1.4 as builder
 FROM percona:8
 USER root
 
