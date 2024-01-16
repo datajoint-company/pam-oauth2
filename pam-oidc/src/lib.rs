@@ -2,21 +2,11 @@
 use std::str::FromStr;
 // crate metadata
 extern crate pkg_version;
-use pkg_version::{
-    pkg_version_major,
-    pkg_version_minor,
-    pkg_version_patch,
-};
+use pkg_version::{pkg_version_major, pkg_version_minor, pkg_version_patch};
 // pam
 #[macro_use]
 extern crate pamsm;
-use pamsm::{
-    PamServiceModule,
-    PamLibExt,
-    Pam,
-    PamFlags,
-    PamError,
-};
+use pamsm::{Pam, PamError, PamFlags, PamLibExt, PamServiceModule};
 struct PamCustom;
 // yaml
 extern crate yaml_rust;
@@ -31,51 +21,40 @@ use serde_json::Value;
 extern crate base64;
 extern crate oauth2;
 // extern crate url;
-use oauth2::{
-    AuthUrl,
-    ClientId,
-    ClientSecret,
-    ResourceOwnerPassword,
-    ResourceOwnerUsername,
-    Scope,
-    TokenResponse,
-    TokenUrl,
-};
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::http_client;
+use oauth2::{
+    AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, Scope,
+    TokenResponse, TokenUrl,
+};
 // logging
 extern crate log;
 extern crate log4rs;
 extern crate log_panics;
 extern crate rand;
-use log::{
-    error,
-    info,
-    debug,
-    LevelFilter,
-};
+use log::{debug, error, info, LevelFilter};
 use log4rs::append::console::ConsoleAppender;
 use log4rs::append::file::FileAppender;
+use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
-use log4rs::config::{
-    Appender,
-    Config,
-    Root,
-};
 use rand::Rng;
 // interface
 impl PamServiceModule for PamCustom {
     fn authenticate(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
         log_panics::init();
         // Load libpam_oidc.so's YAML config file
-        let crate_version = format!("{}.{}.{}", pkg_version_major!(), pkg_version_minor!(),
-                                    pkg_version_patch!());
+        let crate_version = format!(
+            "{}.{}.{}",
+            pkg_version_major!(),
+            pkg_version_minor!(),
+            pkg_version_patch!()
+        );
         let config_file = &_args[0];
         let config: AppConfig = match load_config(config_file) {
             Some(c) => c,
             None => {
                 error!("Error loading config file at '{}'.", config_file);
-                return PamError::AUTH_ERR
+                return PamError::AUTH_ERR;
             }
         };
 
@@ -84,7 +63,7 @@ impl PamServiceModule for PamCustom {
             Some(c) => c,
             None => {
                 error!("Error loading log config.");
-                return PamError::AUTH_ERR
+                return PamError::AUTH_ERR;
             }
         };
         match log4rs::init_config(log_config) {
@@ -100,9 +79,9 @@ impl PamServiceModule for PamCustom {
                 Ok(s) => s,
                 Err(e) => {
                     error!("Error converting user to string. Details: {:?}", e);
-                    return PamError::USER_UNKNOWN
+                    return PamError::USER_UNKNOWN;
                 }
-            }
+            },
             Ok(None) => return PamError::USER_UNKNOWN,
             Err(e) => return e,
         };
@@ -112,9 +91,9 @@ impl PamServiceModule for PamCustom {
                 Ok(s) => s,
                 Err(_) => {
                     error!("Error converting password to string.");
-                    return PamError::AUTH_ERR
+                    return PamError::AUTH_ERR;
                 }
-            }
+            },
             Ok(None) => return PamError::AUTH_ERR,
             Err(e) => return e,
         };
@@ -126,18 +105,16 @@ impl PamServiceModule for PamCustom {
         } else {
             // If passing password directly
             info!("Check as password.");
-            let client =
-                BasicClient::new(
-                    ClientId::new(config.client_id.clone()),
-                    Some(ClientSecret::new(config.client_secret.clone())),
-                    AuthUrl::new(config.url_auth.clone())
-                    .unwrap(),
-                    Some(TokenUrl::new(config.url_token.clone())
-                    .unwrap()),
-                );
-            let token_result = client.exchange_password(
-                &ResourceOwnerUsername::new(pam_user.to_string().clone()),
-                &ResourceOwnerPassword::new(access_token.clone())
+            let client = BasicClient::new(
+                ClientId::new(config.client_id.clone()),
+                Some(ClientSecret::new(config.client_secret.clone())),
+                AuthUrl::new(config.url_auth.clone()).unwrap(),
+                Some(TokenUrl::new(config.url_token.clone()).unwrap()),
+            );
+            let token_result = client
+                .exchange_password(
+                    &ResourceOwnerUsername::new(pam_user.to_string().clone()),
+                    &ResourceOwnerPassword::new(access_token.clone()),
                 )
                 .add_scope(Scope::new(config.scopes.clone()))
                 .request(http_client);
@@ -145,8 +122,8 @@ impl PamServiceModule for PamCustom {
                 Ok(tok) => tok.access_token().secret().to_string(),
                 Err(e) => {
                     error!("Wrong password provided. Details: {:?}", e);
-                    return PamError::AUTH_ERR
-                },
+                    return PamError::AUTH_ERR;
+                }
             };
         }
         // Determine assigned scopes
@@ -157,15 +134,15 @@ impl PamServiceModule for PamCustom {
             Ok(decoded) => decoded,
             Err(e) => {
                 error!("Error decoding token. Details: {:?}", e);
-                return PamError::AUTH_ERR
-            },
+                return PamError::AUTH_ERR;
+            }
         };
         let jwt_payload_str = match std::str::from_utf8(&jwt_payload_decoded) {
             Ok(decoded) => decoded,
             Err(e) => {
                 error!("Error decoding token. Details: {:?}", e);
-                return PamError::AUTH_ERR
-            },
+                return PamError::AUTH_ERR;
+            }
         };
         debug!("jwt_payload_str: {}", jwt_payload_str);
         let jwt_payload: Value = serde_json::from_str(&jwt_payload_str).unwrap();
@@ -175,9 +152,9 @@ impl PamServiceModule for PamCustom {
         let username: String = match verify_token(&config, &access_token) {
             Some(u) => u,
             None => {
-                error!("Token invalid error.");
-                return PamError::AUTH_ERR
-            },
+                info!("Token invalid.");
+                return PamError::AUTH_ERR;
+            }
         };
         let username: &str = &username;
         let scopes_satisfied = subset(assigned_scopes, &config.scopes.clone());
@@ -225,35 +202,26 @@ pub fn subset(parent: &str, child: &str) -> bool {
 pub fn load_file(file: &str) -> std::vec::Vec<Yaml> {
     let mut file = File::open(file).expect("Unable to open file");
     let mut contents = String::new();
-    file.read_to_string(&mut contents).expect("Unable to read file");
+    file.read_to_string(&mut contents)
+        .expect("Unable to read file");
     YamlLoader::load_from_str(&contents).unwrap()
 }
 
 #[derive(Debug)]
-pub struct AppConfig {
-    pub client_id: String,
-    pub client_secret: String,
-    pub url_auth: String,
-    pub url_token: String,
-    pub url_userinfo: String,
-    pub scopes: String,
-    pub username_key: String,
-    pub token_min_size: i64,
-    pub log_level: String,
-    pub log_path: String,
+struct AppConfig {
+    client_id: String,
+    client_secret: String,
+    url_auth: String,
+    url_token: String,
+    url_userinfo: String,
+    scopes: String,
+    username_key: String,
+    token_min_size: i64,
+    log_level: String,
+    log_path: String,
 }
 
-pub fn parse_field(contents: &Yaml, field: &str) -> String {
-    match contents[field].as_str() {
-        Some(s) => s.to_string(),
-        None => {
-            error!("Config file is missing field '{}'. Setting to empty string.", field);
-            return String::new();
-        },
-    }
-}
-
-pub fn load_config(file: &str) -> Option<AppConfig> {
+fn load_config(file: &str) -> Option<AppConfig> {
     let contents = load_file(file);
     if contents.len() == 0 {
         error!("Config file at '{file}' is empty.");
@@ -265,7 +233,7 @@ pub fn load_config(file: &str) -> Option<AppConfig> {
             None => {
                 error!("Config file at '{file}' is missing 'client.id'.");
                 return None;
-            },
+            }
         },
         client_secret: match contents[0]["client.secret"].as_str() {
             Some(s) => s.to_string(),
@@ -331,78 +299,80 @@ pub fn load_config(file: &str) -> Option<AppConfig> {
     Some(conf)
 }
 
-
 /// Initiate logger
-pub fn get_log_config(config: &AppConfig, crate_version: &str) -> Option<Config> {
+fn get_log_config(config: &AppConfig, crate_version: &str) -> Option<Config> {
     let mut rng = rand::thread_rng();
     let log_id: u32 = rng.gen();
     let stdout = ConsoleAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(format!(
-            "[{{d(%Y-%m-%d %H:%M:%S%.3f)}}][pam-oidc][{}][{{l}}][{}]: {{m}}{{n}}",
-            crate_version,
-            log_id,
-        )
-        .as_str()
+        .encoder(Box::new(PatternEncoder::new(
+            format!(
+                "[{{d(%Y-%m-%d %H:%M:%S%.3f)}}][pam-oidc][{}][{{l}}][{}]: {{m}}{{n}}",
+                crate_version, log_id,
+            )
+            .as_str(),
         )))
         .build();
     let file = match FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(format!(
-            "[{{d(%Y-%m-%d %H:%M:%S%.3f)}}][{}][{{l}}][{}]: {{m}}{{n}}",
-            crate_version,
-            log_id,
-        )
-        .as_str()
+        .encoder(Box::new(PatternEncoder::new(
+            format!(
+                "[{{d(%Y-%m-%d %H:%M:%S%.3f)}}][{}][{{l}}][{}]: {{m}}{{n}}",
+                crate_version, log_id,
+            )
+            .as_str(),
         )))
-        .build(config.log_path.clone()) {
-            Ok(f) => f,
-            Err(error) => {
-                error!("Encountered error initializing log file: {:?}", error);
-                return None
-            }
-        };
+        .build(config.log_path.clone())
+    {
+        Ok(f) => f,
+        Err(error) => {
+            error!("Encountered error initializing log file: {:?}", error);
+            return None;
+        }
+    };
     let log_config = match Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
         .appender(Appender::builder().build("file", Box::new(file)))
         .build(
-            Root::builder().appender("stdout").appender("file")
-            .build(LevelFilter::from_str(&config.log_level).unwrap())
+            Root::builder()
+                .appender("stdout")
+                .appender("file")
+                .build(LevelFilter::from_str(&config.log_level).unwrap()),
         ) {
-            Ok(c) => c,
-            Err(error) => {
-                error!("Encountered error initializing log config: {:?}", error);
-                return None
-            },
-        };
+        Ok(c) => c,
+        Err(error) => {
+            error!("Encountered error initializing log config: {:?}", error);
+            return None;
+        }
+    };
     Some(log_config)
 }
 
-
-pub fn verify_token(config: &AppConfig, access_token: &str) -> Option<String> {
+fn verify_token(config: &AppConfig, access_token: &str) -> Option<String> {
     info!("Verifying token.");
     let resp = match reqwest::blocking::Client::new()
         .get(config.url_userinfo.clone())
         .header("Authorization", format!("Bearer {}", access_token))
-        .send() {
-            Ok(r) => r,
-            Err(e) => {
-                error!("Error sending request. Details: {:?}", e);
-                return None
-            },
-        };
+        .send()
+    {
+        Ok(r) => r,
+        Err(e) => {
+            error!("Error sending request. Details: {:?}", e);
+            return None;
+        }
+    };
     let body = match resp.text() {
         Ok(b) => b,
         Err(e) => {
             error!("Error reading response. Details: {:?}", e);
-            return None
-        },
+            return None;
+        }
     };
     debug!("body: {}", body);
     let json: Value = match serde_json::from_str(&body) {
         Ok(j) => j,
         Err(e) => {
             error!("Error parsing JSON. Details: {:?}", e);
-            return None
-        },
+            return None;
+        }
     };
     debug!("token's user: {:?}", json.get("sub"));
     match json.get(config.username_key.clone()) {
@@ -410,13 +380,13 @@ pub fn verify_token(config: &AppConfig, access_token: &str) -> Option<String> {
             Some(s) => return Some(s.to_string()),
             None => {
                 error!("Error parsing username from JSON.");
-                return None
-            },
+                return None;
+            }
         },
         None => {
             error!("Error parsing username from JSON.");
-            return None
-        },
+            return None;
+        }
     }
 }
 
