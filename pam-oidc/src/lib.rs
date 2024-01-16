@@ -377,7 +377,7 @@ pub fn get_log_config(config: &AppConfig, crate_version: &str) -> Option<Config>
 }
 
 
-pub fn verify_token<'a>(config: &AppConfig, access_token: &'a str) -> Option<String> {
+pub fn verify_token(config: &AppConfig, access_token: &str) -> Option<String> {
     info!("Verifying token.");
     let resp = match reqwest::blocking::Client::new()
         .get(config.url_userinfo.clone())
