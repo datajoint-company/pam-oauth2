@@ -1,82 +1,32 @@
-# docker compose up --build
-# docker buildx bake --set "*.platform=linux/amd64" --load
-version: "2.4"
+# docker compose up --build percona
+version: "3"
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/app.dockerfile
-    image: pam_oidc:v0.1.4
-    environment:
-      - DJ_AUTH_USER
-      - DJ_AUTH_PASSWORD
-      - DJ_AUTH_TOKEN
-    #   - RUSTFLAGS=-C link-arg=-undefined
-    #   - RUSTFLAGS=-C target-feature=-crt-static
-    command: tail -f /dev/null
-    volumes:
-      - ./config/service_example:/etc/pam.d/oidc # add a 'oidc' config that utilizes pam_oidc
-      - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml # add pam_oidc-specific config
-      - ./tests/test.py:/workspace/test.py # python test
-      - ./pam-oidc:/workspace/pam-oidc # mount source for dev
   percona:
+    container_name: pam-oauth2-percona
     build:
       context: .
       dockerfile: docker/percona.dockerfile
     environment:
       - MYSQL_ROOT_PASSWORD=password
     env_file:
-      # - demouser.env
-      - milagros.env
-    command: |
-      bash -c """
-      # /docker-entrypoint.sh mysqld
-      /docker-entrypoint.sh tail -f /dev/null
-      """
-    # healthcheck:
-    #   test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-    #   timeout: 30s
-    #   retries: 5
-    #   interval: 15s
+      - .env
+    command: /docker-entrypoint.sh mysqld
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 30s
+      retries: 5
+      interval: 15s
     ports:
       - 3306:3306
     volumes:
       - ./tests/test.py:/opt/test.py
-      - ./tests/test_oidc.py:/opt/test_oidc.py
       - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml
     depends_on:
       builder:
         condition: service_completed_successfully
   builder:
+    container_name: pam-oauth2-builder
     build:
       context: .
       dockerfile: docker/builder.dockerfile
     image: datajoint/pam-oauth2-builder:v0.1.4
-  tester:
-    build:
-      context: .
-      dockerfile: docker/tester.dockerfile
-    image: datajoint/pam-oauth2-tester:latest
-    command: |
-      bash -c """
-      pip install -r requirements.txt
-      python test.py
-      """
-
-
-# docker run --name some-percona -v /my/custom:/etc/my.cnf.d -e MYSQL_ROOT_PASSWORD=my-secret-pw -d percona:tag
-
-# docker run --name database -de MYSQL_ROOT_PASSWORD=${ROOT_PASSWORD} --entrypoint bash percona:8 -c "echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf && /docker-entrypoint.sh mysqld"
-# until docker exec -it database mysql -h 127.0.0.1 -uroot -p${ROOT_PASSWORD} -e "SELECT 1;" 1>/dev/null
-# do
-#     echo waiting...
-#     sleep 5
-# done
-# docker cp ./config/service_example database:/etc/pam.d/oidc
-# docker cp ./pam-oidc/target/debug/libpam_oidc.so database:/usr/lib64/security/libpam_oidc.so
-# docker exec -itu root database mkdir /etc/datajoint
-# docker cp ./config/libpam_oidc.yaml database:/etc/datajoint/
-# docker exec -it database mysql -uroot -p${ROOT_PASSWORD} -e "CREATE USER '${DJ_AUTH_USER}'@'%' IDENTIFIED WITH auth_pam AS 'oidc';"
-# docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -p${DJ_AUTH_PASSWORD} -e "SELECT 'delegated to oidc' as login;"
-# docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -p${DJ_AUTH_PASSWORD} -e "SELECT 'delegated to oidc' as login;"
-# docker exec -it database mysql -h 127.0.0.1 -u${DJ_AUTH_USER} -pdeny -e "SELECT 'delegated to oidc' as login;"
