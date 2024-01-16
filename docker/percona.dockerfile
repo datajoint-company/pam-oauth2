@@ -19,7 +19,7 @@ RUN \
 USER mysql:mysql
 
 # Copy the binary from the builder stage
-COPY --from=builder /tmp/pam-oauth2/libpam_oidc.so /usr/lib64/security/libpam_oidc.so
+COPY --from=builder /tmp/pam-oauth2/libpam_oidc_gnu.so /usr/lib64/security/libpam_oidc.so
 
 # https://docs.percona.com/percona-server/8.0/pam-plugin.html#installation
 RUN echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf

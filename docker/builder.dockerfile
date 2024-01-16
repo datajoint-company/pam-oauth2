@@ -14,4 +14,6 @@ RUN \
 	rustup target add x86_64-unknown-linux-musl && \
 	rustup show && \
 	cargo build --release --target x86_64-unknown-linux-musl && \
-	cp target/x86_64-unknown-linux-musl/release/libpam_oidc.so /tmp/pam-oauth2/libpam_oidc.so
+	cargo build --release --target x86_64-unknown-linux-gnu && \
+	cp target/x86_64-unknown-linux-musl/release/libpam_oidc.so /tmp/pam-oauth2/libpam_oidc_musl.so && \
+	cp target/x86_64-unknown-linux-gnu/release/libpam_oidc.so /tmp/pam-oauth2/libpam_oidc_gnu.so
