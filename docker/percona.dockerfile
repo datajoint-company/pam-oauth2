@@ -25,4 +25,3 @@ COPY --from=builder /tmp/pam-oauth2/libpam_oidc_gnu.so /usr/lib64/security/libpa
 RUN echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf
 COPY config/pam_unix /etc/pam.d/mysqld
 COPY config/service_example /etc/pam.d/oidc
-COPY config/libpam_oidc.yaml /etc/datajoint/libpam_oidc.yaml

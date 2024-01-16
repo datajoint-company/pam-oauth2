@@ -43,6 +43,7 @@ services:
     volumes:
       - ./tests/test.py:/opt/test.py
       - ./tests/test_oidc.py:/opt/test_oidc.py
+      - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml
     depends_on:
       builder:
         condition: service_completed_successfully
