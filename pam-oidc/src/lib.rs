@@ -13,6 +13,7 @@ extern crate yaml_rust;
 use std::fs::File;
 use std::io::prelude::*;
 use yaml_rust::yaml::Yaml;
+use yaml_rust::ScanError;
 use yaml_rust::YamlLoader;
 // json
 extern crate serde_json;
@@ -105,48 +106,23 @@ impl PamServiceModule for PamCustom {
         } else {
             // If passing password directly
             info!("Check as password.");
-            let client = BasicClient::new(
-                ClientId::new(config.client_id.clone()),
-                Some(ClientSecret::new(config.client_secret.clone())),
-                AuthUrl::new(config.url_auth.clone()).unwrap(),
-                Some(TokenUrl::new(config.url_token.clone()).unwrap()),
-            );
-            let token_result = client
-                .exchange_password(
-                    &ResourceOwnerUsername::new(pam_user.to_string().clone()),
-                    &ResourceOwnerPassword::new(access_token.clone()),
-                )
-                .add_scope(Scope::new(config.scopes.clone()))
-                .request(http_client);
-            access_token = match token_result {
-                Ok(tok) => tok.access_token().secret().to_string(),
-                Err(e) => {
-                    error!("Wrong password provided. Details: {:?}", e);
+            access_token = match get_token_oidc(&config, &pam_password, &pam_user) {
+                Some(tok) => tok,
+                None => {
+                    info!("Wrong password provided.");
                     return PamError::AUTH_ERR;
                 }
             };
         }
         // Determine assigned scopes
-        debug!("access_token: {}", access_token);
-        let jwt_payload = access_token.split('.').collect::<Vec<&str>>()[1];
-        debug!("jwt_payload: {}", jwt_payload);
-        let jwt_payload_decoded = match base64::decode(jwt_payload) {
-            Ok(decoded) => decoded,
-            Err(e) => {
-                error!("Error decoding token. Details: {:?}", e);
+        let assigned_scopes = match get_assigned_scopes(&access_token) {
+            Some(s) => s,
+            None => {
+                error!("Token is missing scopes.");
                 return PamError::AUTH_ERR;
             }
         };
-        let jwt_payload_str = match std::str::from_utf8(&jwt_payload_decoded) {
-            Ok(decoded) => decoded,
-            Err(e) => {
-                error!("Error decoding token. Details: {:?}", e);
-                return PamError::AUTH_ERR;
-            }
-        };
-        debug!("jwt_payload_str: {}", jwt_payload_str);
-        let jwt_payload: Value = serde_json::from_str(&jwt_payload_str).unwrap();
-        let assigned_scopes = jwt_payload.get("scope").unwrap().as_str().unwrap();
+        let assigned_scopes: &str = &assigned_scopes;
         debug!("assigned_scopes: {}", assigned_scopes);
         // Verify token
         let username: String = match verify_token(&config, &access_token) {
@@ -199,12 +175,12 @@ pub fn subset(parent: &str, child: &str) -> bool {
     return scopes_satisfied;
 }
 
-pub fn load_file(file: &str) -> std::vec::Vec<Yaml> {
+pub fn load_file(file: &str) -> Result<std::vec::Vec<Yaml>, ScanError> {
     let mut file = File::open(file).expect("Unable to open file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("Unable to read file");
-    YamlLoader::load_from_str(&contents).unwrap()
+    YamlLoader::load_from_str(&contents)
 }
 
 #[derive(Debug)]
@@ -222,7 +198,13 @@ struct AppConfig {
 }
 
 fn load_config(file: &str) -> Option<AppConfig> {
-    let contents = load_file(file);
+    let contents = match load_file(file) {
+        Ok(c) => c,
+        Err(e) => {
+            error!("Error loading config file at '{}'. Details: {:?}", file, e);
+            return None;
+        }
+    };
     if contents.len() == 0 {
         error!("Config file at '{file}' is empty.");
         return None;
@@ -328,6 +310,13 @@ fn get_log_config(config: &AppConfig, crate_version: &str) -> Option<Config> {
             return None;
         }
     };
+    let level = match LevelFilter::from_str(&config.log_level) {
+        Ok(l) => l,
+        Err(error) => {
+            error!("Encountered error initializing log level: {:?}", error);
+            return None;
+        }
+    };
     let log_config = match Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
         .appender(Appender::builder().build("file", Box::new(file)))
@@ -335,7 +324,7 @@ fn get_log_config(config: &AppConfig, crate_version: &str) -> Option<Config> {
             Root::builder()
                 .appender("stdout")
                 .appender("file")
-                .build(LevelFilter::from_str(&config.log_level).unwrap()),
+                .build(level),
         ) {
         Ok(c) => c,
         Err(error) => {
@@ -370,7 +359,9 @@ fn verify_token(config: &AppConfig, access_token: &str) -> Option<String> {
     let json: Value = match serde_json::from_str(&body) {
         Ok(j) => j,
         Err(e) => {
-            error!("Error parsing JSON. Details: {:?}", e);
+            if !e.to_string().contains("EOF while parsing a value") {
+                error!("Error parsing body as JSON. Details: {:?}", e);
+            }
             return None;
         }
     };
@@ -385,6 +376,89 @@ fn verify_token(config: &AppConfig, access_token: &str) -> Option<String> {
         },
         None => {
             error!("Error parsing username from JSON.");
+            return None;
+        }
+    }
+}
+
+fn get_token_oidc(config: &AppConfig, passwd: &str, pam_user: &str) -> Option<String> {
+    let client = BasicClient::new(
+        ClientId::new(config.client_id.clone()),
+        Some(ClientSecret::new(config.client_secret.clone())),
+        match AuthUrl::new(config.url_auth.clone()) {
+            Ok(u) => u,
+            Err(e) => {
+                error!("Error parsing auth url. Details: {:?}", e);
+                return None;
+            }
+        },
+        match TokenUrl::new(config.url_token.clone()) {
+            Ok(u) => Some(u),
+            Err(e) => {
+                error!("Error parsing token url. Details: {:?}", e);
+                return None;
+            }
+        },
+    );
+    let token_result = client
+        .exchange_password(
+            &ResourceOwnerUsername::new(pam_user.to_string()),
+            &ResourceOwnerPassword::new(passwd.to_string()),
+        )
+        .add_scope(Scope::new(config.scopes.clone()))
+        .request(http_client);
+    match token_result {
+        Ok(tok) => Some(tok.access_token().secret().to_string()),
+        Err(e) => {
+            if !e.to_string().contains("Server returned error response") {
+                error!("Error getting token. Details: {}", e.to_string());
+            }
+            return None;
+        }
+    }
+}
+
+fn get_assigned_scopes(access_token: &str) -> Option<String> {
+    debug!("access_token: {}", access_token);
+    let parts = access_token.split('.').collect::<Vec<&str>>();
+    if parts.len() < 2 {
+        error!("Token is improperly formatted.");
+        return None;
+    }
+    let jwt_payload = parts[1];
+    debug!("jwt_payload: {}", jwt_payload);
+    let jwt_payload_decoded = match base64::decode(jwt_payload) {
+        Ok(decoded) => decoded,
+        Err(e) => {
+            error!("Error decoding token. Details: {:?}", e);
+            return None;
+        }
+    };
+    let jwt_payload_str = match std::str::from_utf8(&jwt_payload_decoded) {
+        Ok(decoded) => decoded,
+        Err(e) => {
+            error!("Error decoding token. Details: {:?}", e);
+            return None;
+        }
+    };
+    debug!("jwt_payload_str: {}", jwt_payload_str);
+    let jwt_payload: Value = match serde_json::from_str(&jwt_payload_str) {
+        Ok(decoded) => decoded,
+        Err(e) => {
+            error!("Error parsing JSON. Details: {:?}", e);
+            return None;
+        }
+    };
+    match jwt_payload.get("scope") {
+        Some(s) => match s.as_str() {
+            Some(s) => return Some(s.to_string()),
+            None => {
+                error!("Error parsing scopes from token.");
+                return None;
+            }
+        },
+        None => {
+            error!("Error parsing scopes from token.");
             return None;
         }
     }
