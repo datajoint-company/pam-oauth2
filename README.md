@@ -1,5 +1,9 @@
 # LibPAM OIDC
 
+![GitHub Release](https://img.shields.io/github/v/release/datajoint-company/pam-oauth2)
+![build](https://img.shields.io/github/actions/workflow/status/datajoint-company/pam-oauth2/release)
+
+
 This repository contains a Pluggable Authentication Module (PAM) to allow authentication against a central OIDC provider.
 
 ## Deploy Instructions
