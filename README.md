@@ -7,10 +7,11 @@ This repository contains a Pluggable Authentication Module (PAM) to allow authen
 
 ## Deploy Instructions
 
-1. Acquire (see the [releases](https://github.com/datajoint-company/pam-oauth2/releases) page) or build (see below) the appropriate `libpam_oidc.so` dynamic clib binary for your platform that provides the PAM interface to authenticate via an OIDC provider.
+1. Acquire (see the [releases](https://github.com/datajoint-company/pam-oauth2/releases) page) or build (see below) the appropriate `libpam_oidc.so` clib binary for your platform that provides the PAM interface to authenticate via an OIDC provider.
    1. The `libpam_oidc_gnu.so` binary is built for GNU/Linux distributions and dynamically links to the OS's glibc library.
    2. The `libpam_oidc_musl.so` binary is built for GNU/Linux distributions and statically links to the MUSL library. It sacrifices speed for portability.
-2. Copy `libpam_oidc.so` into the appropriate directory that your system expects new PAM modules to be loaded e.g. on some distributions of Debian, it is located in `/lib/x86_64-linux-gnu/security/`, on others it is `/usr/lib64/security/`.
+   3. Use `libpam_oidc_musl.so` if you are using the `percona/percona-xtradb-cluster` image (e.g. in the [DataJoint Works Percona cluster](https://github.com/yambottle/dj-gitops/blob/3c08d41875aa54664cfb171af34f6edb2ab3b598/applications/k8s/deployments/percona-with-helm/pxc-pam-image/Dockerfile)), since it is based on Alpine Linux.
+2. Copy `libpam_oidc.so` into the appropriate directory where your system expects new PAM modules to be loaded. On some distributions of Debian, it is located in `/lib/x86_64-linux-gnu/security/`, on others it is `/usr/lib64/security/`.
    1. Use `ldconfig -p | grep pam` to find the directory on your distribution.
 3. Create a service config file within the directory that your system expects for PAM. For example, on Debian, it is located in `/etc/pam.d/`. We can create a service/file at `/etc/pam.d/oidc` with the following contents (note the argument in the 1st line should be the path where `pam_oidc`'s config will be located):
 
