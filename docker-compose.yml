@@ -24,9 +24,10 @@ services:
     depends_on:
       builder:
         condition: service_completed_successfully
+    image: datajoint/pam-oauth2-percona:${DOCKER_TAG:-v0.1.4}
   builder:
     container_name: pam-oauth2-builder
     build:
       context: .
       dockerfile: docker/builder.dockerfile
-    image: datajoint/pam-oauth2-builder:v0.1.4
+    image: datajoint/pam-oauth2-builder:${DOCKER_TAG:-v0.1.4}
