@@ -31,7 +31,7 @@ Since v0.1.5, the test and build have been moved to a [Docker Compose](./docker-
 
 ### Build
 
-Since v0.1.5, releases are built in the [`builder` service](./docker-compose.yml). See the [`builder` Dockerfile`](./docker/builder.dockerfile) for details. Building with Docker Compose requires a `.env` file at the repository root (it can be empty). We can build the binaries for targets `x86_64-unknown-linux-gnu` and `x86_64-unknown-linux-musl`, respectively:
+Since v0.1.5, releases are built in the [`builder` service](./docker-compose.yml). See the [`builder` Dockerfile](./docker/builder.dockerfile) for details. Building with Docker Compose requires a `.env` file at the repository root (it can be empty). We can build the binaries for targets `x86_64-unknown-linux-gnu` and `x86_64-unknown-linux-musl`, respectively:
 
 ```bash
 docker compose build builder
