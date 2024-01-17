@@ -1,19 +1,35 @@
-# docker compose up --build
-# docker buildx bake --set "*.platform=linux/amd64" --load
-version: "2.4"
+# docker compose up --build percona
+version: "3"
 services:
-  app:
-    build: .
-    image: pam_oidc:v0.1.4
+  percona:
+    container_name: pam-oauth2-percona
+    build:
+      context: .
+      dockerfile: docker/percona.dockerfile
+      args:
+        - BUILDER_TAG=${DOCKER_TAG:-v0.1.5}
     environment:
-      - DJ_AUTH_USER
-      - DJ_AUTH_PASSWORD
-      - DJ_AUTH_TOKEN
-    #   - RUSTFLAGS=-C link-arg=-undefined
-    #   - RUSTFLAGS=-C target-feature=-crt-static
-    command: tail -f /dev/null
+      - MYSQL_ROOT_PASSWORD=password
+    env_file:
+      - .env
+    command: /docker-entrypoint.sh mysqld
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 30s
+      retries: 5
+      interval: 15s
+    ports:
+      - 3306:3306
     volumes:
-      - ./config/service_example:/etc/pam.d/oidc # add a 'oidc' config that utilizes pam_oidc
-      - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml # add pam_oidc-specific config
-      - ./tests/test.py:/workspace/test.py # python test
-      - ./pam-oidc:/workspace/pam-oidc # mount source for dev
+      - ./tests/test.py:/opt/test.py
+      - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml
+    depends_on:
+      builder:
+        condition: service_completed_successfully
+    image: datajoint/pam-oauth2-percona:${DOCKER_TAG:-v0.1.5}
+  builder:
+    container_name: pam-oauth2-builder
+    build:
+      context: .
+      dockerfile: docker/builder.dockerfile
+    image: datajoint/pam-oauth2-builder:${DOCKER_TAG:-v0.1.5}

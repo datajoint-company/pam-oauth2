@@ -1,3 +1,8 @@
 {
-    "editor.rulers": [95]
+    "editor.rulers": [
+        95
+    ],
+    "rust-analyzer.linkedProjects": [
+        "./pam-oidc/Cargo.toml"
+    ]
 }
