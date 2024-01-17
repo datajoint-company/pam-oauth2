@@ -201,61 +201,99 @@ fn load_config(file: &str) -> Option<AppConfig> {
     let contents = match load_file(file) {
         Ok(c) => c,
         Err(e) => {
-            error!("Error loading config file at '{}'. Details: {:?}", file, e);
+            eprintln!(
+                "[{}:{}] ERROR: Error loading config file at '{}'. Details: {:?}",
+                file!(),
+                line!(),
+                file,
+                e
+            );
             return None;
         }
     };
     if contents.len() == 0 {
-        error!("Config file at '{file}' is empty.");
+        eprintln!(
+            "[{}:{}] ERROR: Config file at '{file}' is empty.",
+            file!(),
+            line!()
+        );
         return None;
     }
     let conf = AppConfig {
         client_id: match contents[0]["client.id"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'client.id'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'client.id'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         client_secret: match contents[0]["client.secret"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'client.secret'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'client.secret'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         url_auth: match contents[0]["url.auth"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'url.auth'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'url.auth'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         url_token: match contents[0]["url.token"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'url.token'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'url.token'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         url_userinfo: match contents[0]["url.userinfo"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'url.userinfo'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'url.userinfo'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         scopes: match contents[0]["scopes"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'scopes'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'scopes'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         username_key: match contents[0]["username.key"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'username.key'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'username.key'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
@@ -266,14 +304,22 @@ fn load_config(file: &str) -> Option<AppConfig> {
         log_level: match contents[0]["log.level"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'log.level'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'log.level'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
         log_path: match contents[0]["log.path"].as_str() {
             Some(s) => s.to_string(),
             None => {
-                error!("Config file at '{file}' is missing 'log.path'.");
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'log.path'.",
+                    file!(),
+                    line!()
+                );
                 return None;
             }
         },
