@@ -16,6 +16,7 @@ jobs:
       - name: Build
         run: |
           export DOCKER_TAG="${{ github.ref_name }}"
+          touch .env
           docker compose build builder
           mkdir -p pam-oidc/bin
           docker compose cp builder:/tmp/pam-oauth2/libpam_oidc_gnu.so ./pam-oidc/bin/
