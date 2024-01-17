@@ -22,7 +22,7 @@ jobs:
           docker compose cp builder:/tmp/pam-oauth2/libpam_oidc_musl.so ./pam-oidc/bin/
       - name: Touch Changelog
         if: startsWith(github.ref, 'refs/tags/')
-        run: touch "${{ github.workspace }}/docs/CHANGELOG-${{ github.ref_name }}.md"
+        run: touch "docs/CHANGELOG-${{ github.ref_name }}.md"
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -30,4 +30,4 @@ jobs:
           files: |
             ./pam-oidc/bin/libpam_oidc_gnu.so
             ./pam-oidc/bin/libpam_oidc_musl.so
-          body_path: ${{ github.workspace }}/docs/CHANGELOG-${{ github.ref_name }}.md
+          body_path: docs/CHANGELOG-${{ github.ref_name }}.md
