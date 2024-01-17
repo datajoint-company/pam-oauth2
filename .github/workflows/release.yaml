@@ -17,10 +17,11 @@ jobs:
         run: |
           export DOCKER_TAG="${{ github.ref_name }}"
           touch .env
-          docker compose build builder
           mkdir -p pam-oidc/bin
+          docker compose up --build builder
           docker compose cp builder:/tmp/pam-oauth2/libpam_oidc_gnu.so ./pam-oidc/bin/
           docker compose cp builder:/tmp/pam-oauth2/libpam_oidc_musl.so ./pam-oidc/bin/
+          docker compose down
       - name: Touch Changelog
         if: startsWith(github.ref, 'refs/tags/')
         run: touch "docs/CHANGELOG-${{ github.ref_name }}.md"
