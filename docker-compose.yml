@@ -33,3 +33,25 @@ services:
       context: .
       dockerfile: docker/builder.dockerfile
     image: datajoint/pam-oauth2-builder:${DOCKER_TAG:-v0.1.5}
+  prod-percona:
+    container_name: pam-oauth2-prod-percona
+    image: datajoint/pam-oauth2-prod-percona:${DOCKER_TAG:-v0.1.5}
+    build:
+      context: .
+      dockerfile: docker/prod-percona.dockerfile
+      args:
+        - BUILDER_TAG=${DOCKER_TAG:-v0.1.5}
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 30s
+      retries: 5
+      interval: 15s
+    volumes:
+      - ./config/libpam_oidc.yaml:/etc/datajoint/libpam_oidc.yaml
+    depends_on:
+      builder:
+        condition: service_completed_successfully
