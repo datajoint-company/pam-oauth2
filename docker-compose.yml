@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: docker/percona.dockerfile
+      args:
+        - BUILDER_TAG=${DOCKER_TAG:-v0.1.5}
     environment:
       - MYSQL_ROOT_PASSWORD=password
     env_file:
@@ -24,10 +26,10 @@ services:
     depends_on:
       builder:
         condition: service_completed_successfully
-    image: datajoint/pam-oauth2-percona:${DOCKER_TAG:-v0.1.4}
+    image: datajoint/pam-oauth2-percona:${DOCKER_TAG:-v0.1.5}
   builder:
     container_name: pam-oauth2-builder
     build:
       context: .
       dockerfile: docker/builder.dockerfile
-    image: datajoint/pam-oauth2-builder:${DOCKER_TAG:-v0.1.4}
+    image: datajoint/pam-oauth2-builder:${DOCKER_TAG:-v0.1.5}

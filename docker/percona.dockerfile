@@ -1,7 +1,7 @@
-FROM datajoint/pam-oauth2-builder:v0.1.4 as builder
+ARG BUILDER_TAG
+FROM datajoint/pam-oauth2-builder:${BUILDER_TAG} as builder
 FROM percona:8
 USER root
-
 RUN \
 	yum -y install python3 python3-pip && \
 	pip3 install python-pam
@@ -18,10 +18,8 @@ RUN \
 	echo "ap_user:password" | chpasswd
 USER mysql:mysql
 
-# Copy the binary from the builder stage
-COPY --from=builder /tmp/pam-oauth2/libpam_oidc_gnu.so /usr/lib64/security/libpam_oidc.so
-
 # https://docs.percona.com/percona-server/8.0/pam-plugin.html#installation
+COPY --from=builder /tmp/pam-oauth2/libpam_oidc_gnu.so /usr/lib64/security/libpam_oidc.so
 RUN echo 'plugin_load_add = auth_pam.so' >> /etc/my.cnf
 COPY config/pam_unix /etc/pam.d/mysqld
 COPY config/service_example /etc/pam.d/oidc
