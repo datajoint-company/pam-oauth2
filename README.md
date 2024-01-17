@@ -1,8 +1,7 @@
 # LibPAM OIDC
 
 ![GitHub Release](https://img.shields.io/github/v/release/datajoint-company/pam-oauth2)
-![build](https://img.shields.io/github/actions/workflow/status/datajoint-company/pam-oauth2/release)
-
+![build](https://img.shields.io/github/actions/workflow/status/datajoint-company/pam-oauth2/release.yaml)
 
 This repository contains a Pluggable Authentication Module (PAM) to allow authentication against a central OIDC provider.
 
@@ -34,10 +33,11 @@ Since v0.1.5, the test and build have been moved to a [Docker Compose](./docker-
 Since v0.1.5, releases are built in the [`builder` service](./docker-compose.yml). See the [`builder` Dockerfile](./docker/builder.dockerfile) for details. Building with Docker Compose requires a `.env` file at the repository root (it can be empty). We can build the binaries for targets `x86_64-unknown-linux-gnu` and `x86_64-unknown-linux-musl`, respectively:
 
 ```bash
-docker compose build builder
+docker compose up --build builder
 mkdir -p pam-oidc/bin
 docker compose cp builder:/tmp/pam-oauth2/libpam_oidc_gnu.so ./pam-oidc/bin/
 docker compose cp builder:/tmp/pam-oauth2/libpam_oidc_musl.so ./pam-oidc/bin/
+docker compose down
 ```
 
 ### Testing
@@ -122,6 +122,7 @@ docker compose exec percona mysql -hlocalhost -udemouser -p'password_or_token_in
 # +---+
 # | 1 |
 # +---+
+docker compose down
 ```
 
 Successful login will return a table with a single row containing the value `1`.
