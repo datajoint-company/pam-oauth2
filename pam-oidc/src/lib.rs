@@ -148,23 +148,29 @@ impl PamServiceModule for PamCustom {
     }
 
     fn chauthtok(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("chauthtok called.");
         PamError::SUCCESS
     }
 
     fn open_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("open_session called.");
         PamError::SUCCESS
     }
 
     fn close_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("close_session called.");
         PamError::SUCCESS
     }
 
     fn setcred(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("setcred called.");
         PamError::SUCCESS
     }
 
     fn acct_mgmt(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("acct_mgmt called.");
         PamError::SUCCESS
+        // PamError::USER_UNKNOWN
     }
 }
 
