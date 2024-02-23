@@ -148,23 +148,50 @@ impl PamServiceModule for PamCustom {
     }
 
     fn chauthtok(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("chauthtok called.");
         PamError::SUCCESS
     }
 
     fn open_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("open_session called.");
         PamError::SUCCESS
     }
 
     fn close_session(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("close_session called.");
         PamError::SUCCESS
     }
 
     fn setcred(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
+        info!("setcred called.");
         PamError::SUCCESS
     }
 
     fn acct_mgmt(_pamh: Pam, _flags: PamFlags, _args: Vec<String>) -> PamError {
-        PamError::SUCCESS
+        info!("acct_mgmt called.");
+        info!("_args: {:?}", _args);
+        info!("_flags: {:?}", _flags);
+        let config_file = &_args[0];
+        let config: AppConfig = match load_config(config_file) {
+            Some(c) => c,
+            None => {
+                error!("Error loading config file at '{}'.", config_file);
+                return PamError::AUTH_ERR;
+            }
+        };
+
+        if config.account_succeed == "success" {
+            PamError::SUCCESS
+        } else if config.account_succeed == "user_unknown" {
+            PamError::USER_UNKNOWN
+        } else if config.account_succeed == "auth_err" {
+            PamError::AUTH_ERR
+        } else if config.account_succeed == "ignore" {
+            PamError::IGNORE
+        } else {
+            PamError::AUTH_ERR
+        }
+
     }
 }
 
@@ -195,6 +222,7 @@ struct AppConfig {
     token_min_size: i64,
     log_level: String,
     log_path: String,
+    account_succeed: String,
 }
 
 fn load_config(file: &str) -> Option<AppConfig> {
@@ -317,6 +345,17 @@ fn load_config(file: &str) -> Option<AppConfig> {
             None => {
                 eprintln!(
                     "[{}:{}] ERROR: Config file at '{file}' is missing 'log.path'.",
+                    file!(),
+                    line!()
+                );
+                return None;
+            }
+        },
+        account_succeed: match contents[0]["account.succeed"].as_str() {
+            Some(s) => s.to_string(),
+            None => {
+                eprintln!(
+                    "[{}:{}] ERROR: Config file at '{file}' is missing 'account.succeed'.",
                     file!(),
                     line!()
                 );
