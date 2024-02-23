@@ -12,8 +12,10 @@ RUN \
 
 # https://www.percona.com/blog/getting-percona-pam-to-work-with-percona-server-its-client-apps/
 RUN \
-	# chgrp mysql /etc/shadow && \
-	# chmod g+r /etc/shadow && \
+	groupadd shadow && \
+	usermod -a -G shadow mysql && \
+	chown root:shadow /etc/shadow && \
+	chmod g+r /etc/shadow && \
 	useradd ap_user && \
 	echo "ap_user:password" | chpasswd
 USER mysql:mysql
